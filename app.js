@@ -1,47 +1,49 @@
-// Import required packages
-const express = require('express');
-const dotenv = require('dotenv');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const path = require('path'); 
+// Dependencies
+const express = require("express");
+const dotenv = require("dotenv");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const cors = require("cors");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const path = require("path");
 
-// Load environment variables from .env file
+// Load .env
 dotenv.config();
 
-// Initialize Express application
+// App init
 const app = express();
 
-// Set the port (fallback to 4000 if not provided)
-const port = process.env.PORT || 4000;
+// Security Middlewares
+app.use(helmet());                   // Secure headers
+app.use(cors());                     // Avoid CORS blocking
+app.use(mongoSanitize());            // Prevent NoSQL injection
 
-// Middleware for security headers
-app.use(helmet());
+// Logging
+app.use(morgan("dev"));
 
-// Middleware for logging HTTP requests
-app.use(morgan('common'));
-
-// Middleware to parse JSON request bodies
+// Body parser
 app.use(express.json());
 
-// Rate Limiting: prevent too many requests from the same IP
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Maximum number of requests per IP
-    message: "Too many requests from this IP, please try again later."
+// Rate limiting
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 min
+    max: 200,
+    message: "Too many requests, try again later.",
+  })
+);
+
+// Public folder (optional for simple chat UI)
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.send("Chat backend running securely!");
 });
 
-app.use(limiter);
 
-// Serve public static files
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Example route
-app.get('/', (req, res) => {
-    res.send("Server is running securely with Express!");
-});
-
-// Start the server
+// Start server
+const port = process.env.PORT || 4000;
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Secure chat server running on port ${port}`);
 });

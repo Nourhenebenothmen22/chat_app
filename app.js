@@ -5,7 +5,6 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
-const mongoSanitize = require("express-mongo-sanitize");
 const path = require("path");
 
 // Load .env
@@ -17,7 +16,6 @@ const app = express();
 // Security Middlewares
 app.use(helmet());                   // Secure headers
 app.use(cors());                     // Avoid CORS blocking
-app.use(mongoSanitize());            // Prevent NoSQL injection
 
 // Logging
 app.use(morgan("dev"));
